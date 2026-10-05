@@ -1,0 +1,12 @@
+node_modules
+.nuxt
+.output
+.data
+.git
+.env
+.env.*
+photos
+Dockerfile
+docker-compose.yml
+*.log
+.DS_Store

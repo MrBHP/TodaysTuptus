@@ -1,0 +1,23 @@
+services:
+  app:
+    build: .
+    image: todays-tuptus
+    container_name: todays-tuptus
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      NUXT_DB_HOST: ${DOCKER_DB_HOST:-postgres}
+      NUXT_DB_PORT: ${DOCKER_DB_PORT:-5432}
+    volumes:
+      - photos:/app/photos
+    networks:
+      - db
+
+volumes:
+  photos:
+
+networks:
+  db:
+    external: true

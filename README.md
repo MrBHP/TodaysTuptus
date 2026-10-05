@@ -97,3 +97,22 @@ node .output/server/index.mjs   # uruchamiaj z katalogu projektu, żeby trafić 
 ```
 
 Na produkcji ustaw `AUTH_ORIGIN=https://twoja-domena.pl/api/auth` i pilnuj, żeby folder `photos/` przetrwał wdrożenia (nie jest w gicie).
+
+## Docker
+
+Aplikacja działa w kontenerze, a baza w osobnym kontenerze w zewnętrznej sieci `db`.
+
+1. W `.env` ustaw dane bazy (`NUXT_DB_NAME`, `NUXT_DB_USER`, `NUXT_DB_PASSWORD`), sekrety logowania
+   i `AUTH_ORIGIN` z prawdziwą domeną. Jeśli kontener Postgresa nie nazywa się `postgres`,
+   dopisz `DOCKER_DB_HOST=nazwa_kontenera`.
+2. Uruchom:
+
+```bash
+docker compose up -d --build
+docker compose logs -f app   # powinno być "[migracje] ..." i "Listening on ..."
+```
+
+- Migracje odpalają się same przy starcie kontenera (`server/plugins/migrations.ts`).
+  Jeśli baza jeszcze wstaje, aplikacja próbuje ponownie przez ok. 30 s.
+- Zdjęcia są na wolumenie `photos` (`/app/photos` w kontenerze), więc przetrwają przebudowanie obrazu.
+- Sieć `db` musi istnieć wcześniej (`docker network create db`) i kontener bazy musi być do niej podpięty.
