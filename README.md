@@ -15,16 +15,29 @@ Strona: http://localhost:3000
 
 ```
 app/
-  app.vue                 ← główny komponent (frontend)
-  assets/css/main.css     ← import Tailwinda
+  app.vue                     ← szkielet (UApp + NuxtPage)
+  pages/index.vue             ← strona główna z losowaniem
+  pages/login.vue             ← logowanie sekretem
+  pages/admin/index.vue       ← panel: wrzucanie i usuwanie zdjęć (tylko zalogowani)
+  pages/admin/zgloszenia.vue  ← panel: zgłoszenia na spacer (tylko zalogowani)
+  components/WalkFormModal.vue← przycisk + modal "Umów się na spacer" (treść checkboxa tutaj)
 server/
-  api/photos.get.ts       ← backend: GET /api/photos zwraca listę zdjęć
-public/
-  zdjecia/                ← tu wrzucasz zdjęcia Tuptusia
-server/utils/db.ts        ← połączenie z bazą: useDb()
-migrations/               ← migracje Knexa (struktura tabel)
-knexfile.js               ← konfiguracja CLI Knexa
-nuxt.config.ts            ← konfiguracja Nuxta (Tailwind, runtimeConfig bazy)
+  api/auth/[...].ts           ← NextAuth: sprawdza sekret z NUXT_ADMIN_SECRET
+  api/photos/index.get.ts     ← GET    /api/photos      lista zdjęć z bazy
+  api/photos/index.post.ts    ← POST   /api/photos      upload (tylko zalogowani)
+  api/photos/[id].delete.ts   ← DELETE /api/photos/:id  usuwanie (tylko zalogowani)
+  routes/photos/[name].get.ts ← GET    /photos/:plik    serwuje zdjęcie z folderu photos/
+  api/walks/index.post.ts     ← POST   /api/walks       nowe zgłoszenie (każdy)
+  api/walks/index.get.ts      ← GET    /api/walks       lista zgłoszeń (tylko zalogowani)
+  api/walks/[id].delete.ts    ← DELETE /api/walks/:id   usuwanie (tylko zalogowani)
+  utils/auth.ts               ← requireAdmin(event): 401 dla niezalogowanych
+  utils/db.ts                 ← połączenie z bazą: useDb()
+shared/types/                 ← typy Photo, WalkRequest (wspólne dla app/ i server/)
+shared/utils/walk.ts          ← walidacja formularza spaceru (front + API)
+photos/                       ← wrzucone zdjęcia (poza gitem, tworzy się samo)
+migrations/                   ← migracje Knexa (struktura tabel)
+knexfile.js                   ← konfiguracja CLI Knexa
+nuxt.config.ts                ← konfiguracja Nuxta
 ```
 
 ## Baza danych (PostgreSQL + Knex)
@@ -51,9 +64,36 @@ W endpointach (`server/api/*.ts`) baza jest dostępna przez auto-importowane `us
 const photos = await useDb()('photos').select('id', 'filename')
 ```
 
+## Logowanie i panel
+
+Logowanie działa na NextAuth (moduł `@sidebase/nuxt-auth`, provider Credentials).
+W `.env` ustaw:
+
+```bash
+NUXT_AUTH_SECRET=...   # openssl rand -base64 32
+NUXT_ADMIN_SECRET=...  # Twój sekret do logowania
+AUTH_ORIGIN=http://localhost:3000/api/auth
+```
+
+Potem wejdź na http://localhost:3000/admin, wpisz sekret i wrzucaj zdjęcia.
+Pliki lądują w `photos/` (nazwy losowe), a wpisy w tabeli `photos`.
+Zdjęcia HEIC/HEIF z iPhone'a są przy wrzucaniu konwertowane na JPG (`heic-convert`), bo poza Safari przeglądarki ich nie wyświetlają.
+
+Chcesz zabezpieczyć kolejny endpoint? Na początku handlera:
+
+```ts
+await requireAdmin(event)
+```
+
+A stronę: `definePageMeta({ middleware: 'sidebase-auth' })`.
+
 ## Wdrożenie
 
-- `npm run generate` → statyczna strona w `.output/public` (Netlify, Vercel, GitHub Pages, zwykły hosting).
-- `npm run build` → aplikacja Node w `.output` (`node .output/server/index.mjs`).
+Strona potrzebuje serwera Node (logowanie, upload, baza), więc `npm run generate` już nie wystarczy:
 
-Lista zdjęć jest generowana podczas budowania, więc po dodaniu nowych zdjęć zbuduj stronę ponownie.
+```bash
+npm run build
+node .output/server/index.mjs   # uruchamiaj z katalogu projektu, żeby trafić w photos/
+```
+
+Na produkcji ustaw `AUTH_ORIGIN=https://twoja-domena.pl/api/auth` i pilnuj, żeby folder `photos/` przetrwał wdrożenia (nie jest w gicie).

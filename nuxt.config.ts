@@ -13,6 +13,9 @@ export default defineNuxtConfig({
     dbName: '',
     dbUser: '',
     dbPassword: '',
+    authSecret: '',
+    adminSecret: '',
+    photosDir: 'photos',
   },
 
   vite: {
@@ -26,11 +29,11 @@ export default defineNuxtConfig({
     },
   },
 
-  routeRules: {
-    // Lista zdjęć jest generowana przy budowaniu (npm run build/generate),
-    // więc gotowa strona działa na każdym hostingu, także statycznym.
-    '/api/photos': { prerender: true },
-  },
+  modules: ['@nuxt/ui', '@sidebase/nuxt-auth'],
 
-  modules: ['@nuxt/ui'],
+  // NextAuth (przez @sidebase/nuxt-auth). Handler: server/api/auth/[...].ts
+  auth: {
+    provider: { type: 'authjs' },
+    // adres API logowania na produkcji bierze się ze zmiennej AUTH_ORIGIN
+  },
 })
