@@ -19,7 +19,7 @@ app/
   pages/index.vue             ← strona główna z losowaniem
   pages/login.vue             ← logowanie sekretem
   pages/admin/index.vue       ← panel: wrzucanie i usuwanie zdjęć (tylko zalogowani)
-  pages/admin/zgloszenia.vue  ← panel: zgłoszenia na spacer (tylko zalogowani)
+  pages/admin/tickets.vue  ← panel: zgłoszenia na spacer (tylko zalogowani)
   components/WalkFormModal.vue← przycisk + modal "Umów się na spacer" (treść checkboxa tutaj)
 server/
   api/auth/[...].ts           ← NextAuth: sprawdza sekret z NUXT_ADMIN_SECRET
