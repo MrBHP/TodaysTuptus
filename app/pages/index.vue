@@ -89,13 +89,13 @@ onBeforeUnmount(() => clearInterval(timer))
         To Twój Tuptuś na dziś!<br>
         <span class="text-sm text-amber-700">Następny za {{ untilTomorrow }} 🐾</span>
       </p>
-      <button
+      <UButton
         v-else
-        class="rounded-xl bg-amber-500 px-6 py-3 text-lg font-semibold text-white hover:bg-amber-600"
+        size="xl"
         @click="draw"
       >
         Losuj Tuptusia ({{ photos.length }} zdjęć)
-      </button>
+      </UButton>
     </template>
 
     <WalkFormModal />
