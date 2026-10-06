@@ -14,7 +14,9 @@ export default defineNuxtConfig({
     dbUser: '',
     dbPassword: '',
     authSecret: '',
-    adminSecret: '',
+    adminEmails: '',
+    googleClientId: '',
+    googleClientSecret: '',
     photosDir: 'photos',
   },
 

@@ -6,25 +6,25 @@ definePageMeta({
 })
 
 const { signIn } = useAuth()
-const secret = ref('')
-const error = ref('')
+const route = useRoute()
 const loading = ref(false)
+
+const error = computed(() => {
+  const code = route.query.error
+  if (!code) return ''
+  if (code === 'AccessDenied') return 'To konto nie ma dostępu do panelu 🐾'
+  return 'Nie udało się zalogować, spróbuj jeszcze raz 🐾'
+})
+
+function targetPath() {
+  const callback = String(route.query.callbackUrl ?? '')
+  const path = callback ? new URL(callback, window.location.origin).pathname : ''
+  return path.startsWith('/admin') ? path : '/admin'
+}
 
 async function login() {
   loading.value = true
-  error.value = ''
-  // 'credentials' = CredentialsProvider z server/api/auth/[...].ts
-  const res = await signIn('credentials', { secret: secret.value, redirect: false })
-  loading.value = false
-
-  if (res?.error) {
-    error.value = 'Zły sekret 🐾'
-    return
-  }
-  // Wracamy tam, skąd middleware przekierował na logowanie (tylko w obrębie strony)
-  const callback = String(useRoute().query.callbackUrl ?? '')
-  const path = callback ? new URL(callback, window.location.origin).pathname : ''
-  await navigateTo(path.startsWith('/admin') ? path : '/admin')
+  await signIn('google', { callbackUrl: targetPath() })
 }
 </script>
 
@@ -35,19 +35,12 @@ async function login() {
         <h1 class="text-xl font-bold text-amber-900">Panel Tuptusia 🔒</h1>
       </template>
 
-      <form class="flex flex-col gap-4" @submit.prevent="login">
-        <UInput
-          v-model="secret"
-          type="password"
-          placeholder="Sekret"
-          autofocus
-          class="w-full"
-        />
+      <div class="flex flex-col gap-4">
         <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
-        <UButton type="submit" block :loading="loading" :disabled="!secret">
-          Zaloguj
+        <UButton block :loading="loading" @click="login">
+          Zaloguj przez Google
         </UButton>
-      </form>
+      </div>
     </UCard>
   </main>
 </template>

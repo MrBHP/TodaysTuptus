@@ -17,12 +17,12 @@ Strona: http://localhost:3000
 app/
   app.vue                     ← szkielet (UApp + NuxtPage)
   pages/index.vue             ← strona główna z losowaniem
-  pages/login.vue             ← logowanie sekretem
+  pages/login.vue             ← logowanie przez Google
   pages/admin/index.vue       ← panel: wrzucanie i usuwanie zdjęć (tylko zalogowani)
   pages/admin/tickets.vue  ← panel: zgłoszenia na spacer (tylko zalogowani)
   components/WalkFormModal.vue← przycisk + modal "Umów się na spacer" (treść checkboxa tutaj)
 server/
-  api/auth/[...].ts           ← NextAuth: sprawdza sekret z NUXT_ADMIN_SECRET
+  api/auth/[...].ts           ← NextAuth: logowanie Google, wpuszcza maile z NUXT_ADMIN_EMAILS
   api/photos/index.get.ts     ← GET    /api/photos      lista zdjęć z bazy
   api/photos/index.post.ts    ← POST   /api/photos      upload (tylko zalogowani)
   api/photos/[id].delete.ts   ← DELETE /api/photos/:id  usuwanie (tylko zalogowani)
@@ -66,16 +66,28 @@ const photos = await useDb()('photos').select('id', 'filename')
 
 ## Logowanie i panel
 
-Logowanie działa na NextAuth (moduł `@sidebase/nuxt-auth`, provider Credentials).
+Logowanie działa na NextAuth (moduł `@sidebase/nuxt-auth`, provider Google).
+Do panelu wejdą tylko konta z listy `NUXT_ADMIN_EMAILS`.
+
+Jednorazowo w [Google Cloud Console](https://console.cloud.google.com/):
+1. Utwórz projekt, w „Google Auth Platform” skonfiguruj ekran zgody (typ External).
+2. „Clients → Create client” → typ **Web application**.
+3. Authorized JavaScript origins: `http://localhost:3000` (i domena produkcyjna).
+4. Authorized redirect URIs: `http://localhost:3000/api/auth/callback/google`
+   (i `https://twoja-domena.pl/api/auth/callback/google`).
+5. Skopiuj Client ID i Client secret do `.env`.
+
 W `.env` ustaw:
 
 ```bash
-NUXT_AUTH_SECRET=...   # openssl rand -base64 32
-NUXT_ADMIN_SECRET=...  # Twój sekret do logowania
+NUXT_AUTH_SECRET=...           # openssl rand -base64 32
+NUXT_ADMIN_EMAILS=ty@gmail.com,ktos@gmail.com
+NUXT_GOOGLE_CLIENT_ID=...apps.googleusercontent.com
+NUXT_GOOGLE_CLIENT_SECRET=...
 AUTH_ORIGIN=http://localhost:3000/api/auth
 ```
 
-Potem wejdź na http://localhost:3000/admin, wpisz sekret i wrzucaj zdjęcia.
+Potem wejdź na http://localhost:3000/admin, zaloguj się przez Google i wrzucaj zdjęcia.
 Pliki lądują w `photos/` (nazwy losowe), a wpisy w tabeli `photos`.
 Zdjęcia HEIC/HEIF z iPhone'a są przy wrzucaniu konwertowane na JPG (`heic-convert`), bo poza Safari przeglądarki ich nie wyświetlają.
 

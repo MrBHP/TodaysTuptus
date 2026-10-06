@@ -2,7 +2,7 @@
 import { validateWalkForm, WALK_LIMITS } from '#shared/utils/walk'
 
 // ✏️ Tu wpisz treść checkboxa
-const CHECKBOX_LABEL = 'Oświadczam, że nie jestem posiadaczem jednego z podanych imion: Bartłomiej, Bartek, Jakub, Mikołaj, Oskar, Witold'
+const CHECKBOX_LABEL = 'Oświadczam, że nie jestem posiadaczem jednego z podanych imion: Bartłomiej, Bartosz, Jakub, Jan, Mikołaj, Oskar, Witold, Ziemowit'
 
 const open = ref(false)
 const sent = ref(false)
