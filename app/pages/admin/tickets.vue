@@ -14,6 +14,18 @@ const filtered = computed(() => {
   )
 })
 
+const PAGE_SIZE = 10
+const page = ref(1)
+const pageCount = computed(() => Math.max(1, Math.ceil(filtered.value.length / PAGE_SIZE)))
+const paginated = computed(() =>
+  filtered.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE),
+)
+
+watch(search, () => (page.value = 1))
+watch(pageCount, (n) => {
+  if (page.value > n) page.value = n
+})
+
 const formatDate = (d: string) =>
   new Date(d).toLocaleString('pl-PL', { dateStyle: 'medium', timeStyle: 'short' })
 
@@ -37,7 +49,7 @@ async function remove(r: WalkRequest) {
       <p v-if="!requests.length" class="text-amber-800">Na razie nikt się nie zgłosił.</p>
       <p v-else-if="!filtered.length" class="text-amber-800">Nic nie pasuje do wyszukiwania.</p>
 
-      <UCard v-for="r in filtered" :key="r.id">
+      <UCard v-for="r in paginated" :key="r.id">
         <div class="flex flex-col gap-3">
           <div class="flex flex-wrap items-start justify-between gap-2">
             <div>
@@ -57,6 +69,14 @@ async function remove(r: WalkRequest) {
           </UButton>
         </div>
       </UCard>
+
+      <UPagination
+        v-if="filtered.length > PAGE_SIZE"
+        v-model:page="page"
+        :total="filtered.length"
+        :items-per-page="PAGE_SIZE"
+        class="self-center"
+      />
     </div>
   </main>
 </template>

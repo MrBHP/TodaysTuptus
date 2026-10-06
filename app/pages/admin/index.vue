@@ -8,6 +8,18 @@ const { data: photos, refresh } = await useFetch<Photo[]>('/api/photos', {
   default: () => [],
 })
 
+const page = ref(1)
+const itemsPerPage = 12
+const totalPages = computed(() => Math.max(1, Math.ceil(photos.value.length / itemsPerPage)))
+const paginatedPhotos = computed(() => {
+  const start = (page.value - 1) * itemsPerPage
+  return photos.value.slice(start, start + itemsPerPage)
+})
+
+watch(totalPages, (value) => {
+  if (page.value > value) page.value = value
+})
+
 const files = ref<File[]>([])
 const uploading = ref(false)
 
@@ -65,7 +77,7 @@ async function remove(photo: Photo) {
         </h2>
         <p v-if="!photos.length" class="text-amber-800">Jeszcze nic tu nie ma.</p>
         <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-          <li v-for="photo in photos" :key="photo.id" class="group relative">
+          <li v-for="photo in paginatedPhotos" :key="photo.id" class="group relative">
             <img :src="photo.url" alt="" class="aspect-square w-full rounded-xl object-cover shadow">
             <UButton
               color="error"
@@ -77,6 +89,13 @@ async function remove(photo: Photo) {
             </UButton>
           </li>
         </ul>
+        <UPagination
+          v-if="totalPages > 1"
+          v-model:page="page"
+          :items-per-page="itemsPerPage"
+          :total="photos.length"
+          class="mt-4 justify-center"
+        />
       </section>
     </div>
   </main>
